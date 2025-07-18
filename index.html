@@ -423,11 +423,11 @@
 
             <form id="extractionForm">
                 <div class="form-group">
-                    <label for="userInstruction">Extraction Instructions:</label>
+                    <label for="userInstruction">Extraction Instructions (Optional):</label>
                     <textarea 
                         id="userInstruction" 
-                        placeholder="Enter specific instructions for what to extract (e.g., 'Extract all items', 'Extract vendor details and total amount', etc.)"
-                        required>Extract all items</textarea>
+                        placeholder="Enter specific instructions for what to extract (e.g., 'Extract all items', 'Extract vendor details and total amount', etc.) - Leave empty for default extraction"
+                        >Extract all items</textarea>
                 </div>
 
                 <button type="submit" class="btn" id="extractBtn">
@@ -556,10 +556,7 @@
             }
 
             const userInstruction = document.getElementById('userInstruction').value.trim();
-            if (!userInstruction) {
-                showError('Please enter extraction instructions.');
-                return;
-            }
+            // If empty, use empty string instead of default text
 
             updateStep(3);
             showLoading(true);
@@ -635,7 +632,7 @@
                     body: JSON.stringify({
                         file_key: file.name,
                         document_type: 'invoice',
-                        User_instruction: userInstruction
+                        User_instruction: userInstruction || "" // Use empty string if no instruction provided
                     })
                 });
 
