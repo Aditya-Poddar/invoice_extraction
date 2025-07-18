@@ -353,6 +353,30 @@
             background: #4CAF50;
         }
 
+        .file-type-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .file-type-zip {
+            background: #ff9800;
+            color: white;
+        }
+
+        .file-type-pdf {
+            background: #f44336;
+            color: white;
+        }
+
+        .file-type-image {
+            background: #2196f3;
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
@@ -407,13 +431,13 @@
 
             <div class="upload-section">
                 <div class="file-upload-container" id="fileUploadContainer">
-                    <input type="file" class="file-input" id="fileInput" accept=".pdf,.jpg,.jpeg,.png">
+                    <input type="file" class="file-input" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.zip">
                     <div class="upload-icon">📄</div>
                     <div class="upload-text">
                         <strong>Choose a file</strong> or drag it here
                     </div>
                     <div style="color: #999; font-size: 0.9em;">
-                        Supported formats: PDF, JPG, PNG
+                        Supported formats: PDF, JPG, PNG, ZIP
                     </div>
                 </div>
                 <div class="file-info" id="fileInfo">
@@ -487,9 +511,66 @@
         fileUploadContainer.addEventListener('drop', handleDrop);
         fileUploadContainer.addEventListener('dragleave', handleDragLeave);
 
+        function getFileTypeIndicator(file) {
+            const extension = file.name.split('.').pop().toLowerCase();
+            const fileType = file.type;
+            
+            if (extension === 'zip') {
+                return '<span class="file-type-indicator file-type-zip">ZIP</span>';
+            } else if (extension === 'pdf') {
+                return '<span class="file-type-indicator file-type-pdf">PDF</span>';
+            } else if (fileType.startsWith('image/')) {
+                return '<span class="file-type-indicator file-type-image">IMAGE</span>';
+            }
+            return '';
+        }
+
+        function getFileIcon(file) {
+            const extension = file.name.split('.').pop().toLowerCase();
+            
+            if (extension === 'zip') {
+                return '📦';
+            } else if (extension === 'pdf') {
+                return '📄';
+            } else if (file.type.startsWith('image/')) {
+                return '🖼️';
+            }
+            return '📄';
+        }
+
+        function validateFile(file) {
+            const allowedTypes = [
+                'application/pdf',
+                'image/jpeg',
+                'image/jpg',
+                'image/png',
+                'application/zip',
+                'application/x-zip-compressed'
+            ];
+            
+            const allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'zip'];
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            
+            const isValidType = allowedTypes.includes(file.type) || allowedExtensions.includes(fileExtension);
+            
+            if (!isValidType) {
+                showError('Please select a valid file type (PDF, JPG, PNG, or ZIP).');
+                return false;
+            }
+            
+            // Check file size (50MB limit)
+            const maxSize = 50 * 1024 * 1024; // 50MB
+            if (file.size > maxSize) {
+                showError('File size must be less than 50MB.');
+                return false;
+            }
+            
+            return true;
+        }
+
         function handleFileSelect(event) {
             const file = event.target.files[0];
-            if (file) {
+            if (file && validateFile(file)) {
                 selectedFile = file;
                 displayFileInfo(file);
                 updateStep(2);
@@ -512,22 +593,29 @@
             
             const files = event.dataTransfer.files;
             if (files.length > 0) {
-                selectedFile = files[0];
-                fileInput.files = files;
-                displayFileInfo(files[0]);
-                updateStep(2);
+                const file = files[0];
+                if (validateFile(file)) {
+                    selectedFile = file;
+                    fileInput.files = files;
+                    displayFileInfo(file);
+                    updateStep(2);
+                }
             }
         }
 
         function displayFileInfo(file) {
-            fileName.textContent = file.name;
+            const fileTypeIndicator = getFileTypeIndicator(file);
+            const fileIcon = getFileIcon(file);
+            
+            fileName.innerHTML = file.name + fileTypeIndicator;
             fileInfo.style.display = 'block';
             
             // Update upload container
             fileUploadContainer.innerHTML = `
-                <div class="upload-icon">✅</div>
+                <div class="upload-icon">${fileIcon}</div>
                 <div class="upload-text">
                     <strong>File Ready: ${file.name}</strong>
+                    ${fileTypeIndicator}
                 </div>
                 <div style="color: #4CAF50; font-size: 0.9em;">
                     Click to change file
@@ -732,13 +820,13 @@
             
             // Reset file upload container
             fileUploadContainer.innerHTML = `
-                <input type="file" class="file-input" id="fileInput" accept=".pdf,.jpg,.jpeg,.png">
+                <input type="file" class="file-input" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.zip">
                 <div class="upload-icon">📄</div>
                 <div class="upload-text">
                     <strong>Choose a file</strong> or drag it here
                 </div>
                 <div style="color: #999; font-size: 0.9em;">
-                    Supported formats: PDF, JPG, PNG
+                    Supported formats: PDF, JPG, PNG, ZIP
                 </div>
             `;
             
