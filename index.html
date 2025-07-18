@@ -377,6 +377,12 @@
             color: white;
         }
 
+        .file-size {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
@@ -437,11 +443,12 @@
                         <strong>Choose a file</strong> or drag it here
                     </div>
                     <div style="color: #999; font-size: 0.9em;">
-                        Supported formats: PDF, JPG, PNG, ZIP
+                        Supported formats: PDF, JPG, PNG, ZIP (up to 200MB)
                     </div>
                 </div>
                 <div class="file-info" id="fileInfo">
                     <strong>Selected file:</strong> <span id="fileName"></span>
+                    <div class="file-size" id="fileSize"></div>
                 </div>
             </div>
 
@@ -494,6 +501,7 @@
         const fileUploadContainer = document.getElementById('fileUploadContainer');
         const fileInfo = document.getElementById('fileInfo');
         const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
         const extractionForm = document.getElementById('extractionForm');
         const extractBtn = document.getElementById('extractBtn');
         const loading = document.getElementById('loading');
@@ -510,6 +518,14 @@
         fileUploadContainer.addEventListener('dragover', handleDragOver);
         fileUploadContainer.addEventListener('drop', handleDrop);
         fileUploadContainer.addEventListener('dragleave', handleDragLeave);
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
 
         function getFileTypeIndicator(file) {
             const extension = file.name.split('.').pop().toLowerCase();
@@ -558,10 +574,10 @@
                 return false;
             }
             
-            // Check file size (50MB limit)
-            const maxSize = 500 * 1024 * 1024; // 50MB
+            // Check file size (200MB limit)
+            const maxSize = 200 * 1024 * 1024; // 200MB
             if (file.size > maxSize) {
-                showError('File size must be less than 50MB.');
+                showError('File size must be less than 200MB.');
                 return false;
             }
             
@@ -606,8 +622,10 @@
         function displayFileInfo(file) {
             const fileTypeIndicator = getFileTypeIndicator(file);
             const fileIcon = getFileIcon(file);
+            const fileSizeFormatted = formatFileSize(file.size);
             
             fileName.innerHTML = file.name + fileTypeIndicator;
+            fileSize.textContent = `File size: ${fileSizeFormatted}`;
             fileInfo.style.display = 'block';
             
             // Update upload container
@@ -617,7 +635,10 @@
                     <strong>File Ready: ${file.name}</strong>
                     ${fileTypeIndicator}
                 </div>
-                <div style="color: #4CAF50; font-size: 0.9em;">
+                <div style="color: #666; font-size: 0.9em;">
+                    Size: ${fileSizeFormatted}
+                </div>
+                <div style="color: #4CAF50; font-size: 0.9em; margin-top: 5px;">
                     Click to change file
                 </div>
             `;
@@ -698,7 +719,7 @@
                 updateProgress(30);
                 
                 // Step 2: Upload file to S3 using PUT method
-                loadingText.textContent = 'Uploading file to S3...';
+                loadingText.textContent = `Uploading file to S3... (${formatFileSize(file.size)})`;
                 
                 const uploadResponse = await fetch(presignedUrl, {
                     method: 'PUT',
@@ -826,7 +847,7 @@
                     <strong>Choose a file</strong> or drag it here
                 </div>
                 <div style="color: #999; font-size: 0.9em;">
-                    Supported formats: PDF, JPG, PNG, ZIP
+                    Supported formats: PDF, JPG, PNG, ZIP (up to 200MB)
                 </div>
             `;
             
