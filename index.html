@@ -62,14 +62,14 @@
         }
 
         .upload-section {
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .file-upload-container {
             position: relative;
             border: 3px dashed #ddd;
             border-radius: 15px;
-            padding: 40px;
+            padding: 25px;
             text-align: center;
             transition: all 0.3s ease;
             background: #fafafa;
@@ -97,9 +97,9 @@
         }
 
         .upload-icon {
-            font-size: 3em;
+            font-size: 2.5em;
             color: #4CAF50;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .upload-text {
@@ -144,7 +144,7 @@
         }
 
         .form-group textarea {
-            height: 100px;
+            height: 80px;
             resize: vertical;
         }
 
@@ -223,7 +223,7 @@
             font-family: 'Courier New', monospace;
             font-size: 14px;
             line-height: 1.6;
-            max-height: 400px;
+            max-height: 600px;
             overflow-y: auto;
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -448,7 +448,12 @@
             <div class="error" id="error"></div>
 
             <div class="results" id="results">
-                <h3>📊 Extraction Results</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3>📊 Extraction Results</h3>
+                    <button type="button" class="btn" id="resetBtn" onclick="resetForm()" style="padding: 8px 16px; font-size: 14px;">
+                        🔄 Process New Document
+                    </button>
+                </div>
                 <div class="json-container" id="jsonOutput"></div>
             </div>
         </div>
@@ -715,6 +720,53 @@
 
         // Initialize
         updateStep(1);
+
+        // Reset form function
+        function resetForm() {
+            // Reset variables
+            selectedFile = null;
+            currentStep = 1;
+            
+            // Reset file input
+            fileInput.value = '';
+            
+            // Reset file upload container
+            fileUploadContainer.innerHTML = `
+                <input type="file" class="file-input" id="fileInput" accept=".pdf,.jpg,.jpeg,.png">
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">
+                    <strong>Choose a file</strong> or drag it here
+                </div>
+                <div style="color: #999; font-size: 0.9em;">
+                    Supported formats: PDF, JPG, PNG
+                </div>
+            `;
+            
+            // Re-attach event listeners to new file input
+            const newFileInput = document.getElementById('fileInput');
+            newFileInput.addEventListener('change', handleFileSelect);
+            
+            // Reset file info
+            fileInfo.style.display = 'none';
+            
+            // Reset form
+            document.getElementById('userInstruction').value = 'Extract all items';
+            
+            // Hide results and messages
+            results.style.display = 'none';
+            hideMessages();
+            showLoading(false);
+            
+            // Reset progress
+            progress.style.display = 'none';
+            progressBar.style.width = '0%';
+            
+            // Reset steps
+            updateStep(1);
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>
